@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Configuração de Horários"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Primeira Entrada -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Primeira Entrada" />
+
+    <Button
+        android:id="@+id/buttonEntrada1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecionar Hora"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Primeira Saída -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Primeira Saída" />
+
+    <Button
+        android:id="@+id/buttonSaida1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecionar Hora"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Segunda Entrada -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Segunda Entrada" />
+
+    <Button
+        android:id="@+id/buttonEntrada2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecionar Hora"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Segunda Saída -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Segunda Saída" />
+
+    <Button
+        android:id="@+id/buttonSaida2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecionar Hora"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/buttonSalvarConfig"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Salvar Configuração"
+        android:layout_gravity="center_horizontal" />
+</LinearLayout>

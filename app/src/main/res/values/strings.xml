@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MarcaPonto</string>
+    <string name="default_web_client_id">project-535889492250</string>
+    <string name="open_drawer">Open</string>
+    <string name="close_drawer">Close</string>
+
+</resources>
