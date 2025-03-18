@@ -132,7 +132,7 @@ app.get('/buscar-pontos-por-horario', async (req, res) => {
     try {
         const query = `
             SELECT * FROM pontos
-            WHERE horario = $1;
+            WHERE TO_CHAR(horario, 'HH24:MI') = $1;
         `;
         const values = [horario];
 

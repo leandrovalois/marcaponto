@@ -25,6 +25,8 @@
             android:enabled="true"
             android:exported="true"></service>
 
+        <service android:name=".services.NotificationService" />
+
         <activity
             android:name=".activities.ConfigActivity"
             android:exported="false" />
