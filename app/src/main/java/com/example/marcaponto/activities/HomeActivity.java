@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -57,13 +59,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MaterialToolbar toolbar;
     private FloatingActionButton fabRegistrarPonto;
     private ApiService apiService;
-
     private FirebaseAuth firebaseManager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
 
         // Configurar o Retrofit
         apiService = RetrofitClient.getApiService();
@@ -161,7 +162,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
@@ -178,7 +178,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Obter a localização atual e centralizar o mapa
         getLastLocation();
     }
-
     private void getLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -199,7 +198,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -223,7 +221,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -234,7 +231,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -243,7 +239,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             super.onBackPressed();
         }
     }
-
     private void verificarPontosDoDia(String usuario) {
         Call<ContagemPontos> call = apiService.contarPontosDoDia(usuario);
         call.enqueue(new Callback<ContagemPontos>() {
@@ -252,7 +247,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (response.isSuccessful() && response.body() != null) {
                     int totalPontos = response.body().getTotal();
                     //Log.d("CONTAGEM" , String.valueOf(totalPontos));
-                    if (totalPontos >= 4) {
+                    if (totalPontos >= 400) {
                         // Desativar o botão de marcar ponto
                         fabRegistrarPonto.setAlpha(0.5f); // Torna o botão translúcido
                         fabRegistrarPonto.setEnabled(false); // Desativa o botão
@@ -271,8 +266,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
-
     private void buscarHorariosEIniciarService() {
         String usuario = firebaseManager.getCurrentUser().getEmail(); // Substitua pelo método correto para obter o usuário logado
 
@@ -306,7 +299,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     private int converterHorarioParaMinutos(String horario) {
         String[] partes = horario.split(":");
         int horas = Integer.parseInt(partes[0]);
