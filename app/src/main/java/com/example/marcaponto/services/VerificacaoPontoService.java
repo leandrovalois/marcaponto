@@ -27,6 +27,7 @@ import java.util.TimerTask;
 
 public class VerificacaoPontoService extends Service {
 
+    private static final String TAG = "VALOIS >>";
     private Timer timer;
     private static final long INTERVALO_VERIFICACAO = 1 * 60 * 1000; // 5 minutos
     private static final int MAX_TENTATIVAS = 3; // Número máximo de tentativas
@@ -61,16 +62,21 @@ public class VerificacaoPontoService extends Service {
         }, 0, INTERVALO_VERIFICACAO);
     }
     private void verificarPontos() {
+        Log.d(TAG, "1");
         Calendar agora = Calendar.getInstance();
         int minutosAtuais = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE);
 
         for (int horario : horariosProgramados) {
-            if (minutosAtuais >= horario && minutosAtuais <= horario + 5) {
+            Log.d(TAG, horariosProgramados+"");
+            if (minutosAtuais >= horario && minutosAtuais <= horario + 1) {
+                Log.d(TAG, horario+"");
                 // Verificar se o ponto foi batido
                 verificarPontoNoBanco(horario);
             }
         }
     }
+
+
     private void verificarPontoNoBanco(int horario) {
         String horarioFormatado = formatarHorario(horario);
         Call<List<Ponto>> call = apiService.buscarPontosPorHorario(horarioFormatado);
@@ -84,7 +90,10 @@ public class VerificacaoPontoService extends Service {
                         // Ponto não foi batido
                         tentativas++;
                         if (tentativas >= MAX_TENTATIVAS) {
-                            exibirNotificacao(horario);
+                            Log.d(TAG, horarioFormatado);
+                            //exibirNotificacao(horario);
+                            enviarNotificacao("Título da Notificação", "Esta é uma mensagem de notificação.");
+
                             tentativas = 0; // Reinicia o contador de tentativas
                         }
                     } else {
@@ -102,35 +111,25 @@ public class VerificacaoPontoService extends Service {
             }
         });
     }
-    private void exibirNotificacao(int horario) {
-        // Configurar o NotificationManager
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        String channelId = "alertas_ponto";
 
-        // Criar o canal de notificação (necessário para Android 8.0+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "Alertas de Ponto",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        // Criar a notificação
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.ic_notification) // Ícone da notificação
-                .setContentTitle("Alerta de Ponto") // Título da notificação
-                .setContentText("Você ainda não bateu o ponto no horário " + formatarHorario(horario) + "!") // Mensagem da notificação
-                .setPriority(NotificationCompat.PRIORITY_HIGH); // Prioridade alta
-
-        // Exibir a notificação
-        notificationManager.notify(horario, builder.build()); // Usar o horário como ID da notificação
+    private void enviarNotificacao(String titulo, String mensagem) {
+        Intent serviceIntent = new Intent(this, NotificationService.class);
+        serviceIntent.putExtra("titulo", titulo);
+        serviceIntent.putExtra("mensagem", mensagem);
+        startService(serviceIntent);
     }
-    private String formatarHorario(int minutos) {
-        int horas = minutos / 60;
-        int minutosRestantes = minutos % 60;
-        return String.format("%02d:%02d", horas, minutosRestantes);
+
+    private String formatarHorario(int horario) {
+        int horas = horario / 60;
+        int minutos = horario % 60;
+
+        // Formatar como "YYYY-MM-DD HH:MM:SS"
+        Calendar agora = Calendar.getInstance();
+        int ano = agora.get(Calendar.YEAR);
+        int mes = agora.get(Calendar.MONTH) + 1; // Mês começa em 0
+        int dia = agora.get(Calendar.DAY_OF_MONTH);
+
+        return String.format("%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, horas, minutos);
     }
     @Override
     public void onDestroy() {

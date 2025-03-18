@@ -64,45 +64,39 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-
         // Configurar o Retrofit
         apiService = RetrofitClient.getApiService();
-
+        //Inicialização do firebase
         firebaseManager =  FirebaseManager.getInstance().getAuth();
-
+        //
         buscarHorariosEIniciarService();
-
+        //
         verificarPontosDoDia(firebaseManager.getCurrentUser().getEmail());
-
+        //
         Intent serviceIntent = new Intent(this, VerificacaoPontoService.class);
         startService(serviceIntent);
-
         // Inicializar o provedor de localização
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         // Configurar o DrawerLayout e NavigationView
         drawerLayout = findViewById(R.id.drawer_layout);
+        //
         navigationView = findViewById(R.id.nav_view);
+        //
         toolbar = findViewById(R.id.toolbar);
-
         // Configurar a Toolbar
         setSupportActionBar(toolbar);
-
         // Configurar o Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
         drawerLayout.addDrawerListener(toggle);
+        //
         toggle.syncState();
-
         // Configurar o listener do menu
         navigationView.setNavigationItemSelectedListener(this);
-
         // Obter o SupportMapFragment e notificar quando o mapa estiver pronto
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         // Configurar o botão flutuante
         fabRegistrarPonto = findViewById(R.id.fab_registrar_ponto);
         fabRegistrarPonto.setOnClickListener(new View.OnClickListener() {
@@ -220,16 +214,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Fechar o menu após a seleção
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permissão concedida, atualizar o mapa
-                onMapReady(mMap);
-            }
-        }
     }
     @Override
     public void onBackPressed() {
