@@ -51,7 +51,6 @@ public class VerificacaoPontoService extends Service {
         iniciarVerificacao();
         return START_STICKY;
     }
-
     private void iniciarVerificacao() {
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -61,7 +60,6 @@ public class VerificacaoPontoService extends Service {
             }
         }, 0, INTERVALO_VERIFICACAO);
     }
-
     private void verificarPontos() {
         Calendar agora = Calendar.getInstance();
         int minutosAtuais = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE);
@@ -73,7 +71,6 @@ public class VerificacaoPontoService extends Service {
             }
         }
     }
-
     private void verificarPontoNoBanco(int horario) {
         String horarioFormatado = formatarHorario(horario);
         Call<List<Ponto>> call = apiService.buscarPontosPorHorario(horarioFormatado);
@@ -105,7 +102,6 @@ public class VerificacaoPontoService extends Service {
             }
         });
     }
-
     private void exibirNotificacao(int horario) {
         // Configurar o NotificationManager
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -131,26 +127,22 @@ public class VerificacaoPontoService extends Service {
         // Exibir a notificação
         notificationManager.notify(horario, builder.build()); // Usar o horário como ID da notificação
     }
-
     private String formatarHorario(int minutos) {
         int horas = minutos / 60;
         int minutosRestantes = minutos % 60;
         return String.format("%02d:%02d", horas, minutosRestantes);
     }
-
     @Override
     public void onDestroy() {
         pararVerificacao();
         super.onDestroy();
     }
-
     private void pararVerificacao() {
         if (timer != null) {
             timer.cancel();
             timer = null;
         }
     }
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

@@ -48,7 +48,6 @@ public class EspelhoDePontoActivity extends AppCompatActivity {
         // Buscar pontos do dia
         buscarPontosDoDia(firebaseManager.getCurrentUser().getEmail());
     }
-
     private void buscarPontosDoDia(String usuario) {
         Call<List<Ponto>> call = apiService.buscarPontosDoDia(usuario);
         call.enqueue(new Callback<List<Ponto>>() {
@@ -68,7 +67,6 @@ public class EspelhoDePontoActivity extends AppCompatActivity {
             }
         });
     }
-
     private void exibirPontos(List<Ponto> pontos) {
         List<String> pontosFormatados = new ArrayList<>();
 
@@ -92,7 +90,6 @@ public class EspelhoDePontoActivity extends AppCompatActivity {
         );
         listViewPontos.setAdapter(adapter);
     }
-
     private String formatarHorario(String horario) {
         try {
             // Converter o horário recebido (UTC) para o fuso horário local

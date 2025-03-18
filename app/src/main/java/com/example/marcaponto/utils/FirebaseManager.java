@@ -11,18 +11,15 @@ public class FirebaseManager {
     private FirebaseManager() {
         mAuth = FirebaseAuth.getInstance();
     }
-
     public static synchronized FirebaseManager getInstance() {
         if (instance == null) {
             instance = new FirebaseManager();
         }
         return instance;
     }
-
     public FirebaseAuth getAuth() {
         return mAuth;
     }
-
     public FirebaseUser getUser() {
         return mAuth.getCurrentUser(); // Retorna o usuário atual (pode ser null)
     }

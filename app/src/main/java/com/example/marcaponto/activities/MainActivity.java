@@ -1,6 +1,9 @@
 package com.example.marcaponto.activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -8,6 +11,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.marcaponto.utils.FirebaseManager;
 import com.example.marcaponto.R;
@@ -33,11 +38,16 @@ public class MainActivity extends AppCompatActivity {
     private Button btn_entrar;
     private TextView textViewUserEmail;
     private TextView textView_register;
+    private static final int PERMISSION_REQUEST_CODE = 1001;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1002;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Iniciar o processo de solicitação de permissões
+        requestPermissionsSequentially();
 
         // Inicializar FirebaseAuth
         mAuth = FirebaseManager.getInstance().getAuth();
@@ -72,7 +82,50 @@ public class MainActivity extends AppCompatActivity {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
+    private void requestPermissionsSequentially() {
+        // Solicitar permissão de notificação primeiro
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CODE);
+            } else {
+                // Se a permissão de notificação já foi concedida, solicitar permissão de localização
+                requestLocationPermission();
+            }
+        } else {
+            // Para versões anteriores ao Android 13, não é necessário solicitar permissão de notificação
+            requestLocationPermission();
+        }
+    }
+    private void requestLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            // Permissão de localização já concedida
+            Toast.makeText(this, "Permissão de localização concedida", Toast.LENGTH_SHORT).show();
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão de notificação concedida, agora solicitar permissão de localização
+                requestLocationPermission();
+            } else {
+                // Permissão de notificação negada
+                Toast.makeText(this, "Permissão de notificação negada", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permissão de localização concedida
+                Toast.makeText(this, "Permissão de localização concedida", Toast.LENGTH_SHORT).show();
+            } else {
+                // Permissão de localização negada
+                Toast.makeText(this, "Permissão de localização negada", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     private void checkUserAndAuthenticate() {
         String email = editTextEmail.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
@@ -103,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -118,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
@@ -132,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
-
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             //textViewUserEmail.setText(user.getEmail());
@@ -140,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
             //textViewUserEmail.setText("Nenhum usuário logado");
         }
     }
-
     private void goToHome(){
         Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show();
         Intent i = new Intent(MainActivity.this,HomeActivity.class);

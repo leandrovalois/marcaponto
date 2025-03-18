@@ -29,7 +29,6 @@ public class RegisterActivity extends MainActivity {
         mAuth = FirebaseAuth.getInstance();
     }
 
-
     private void registerUser(String email, String password) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
@@ -40,6 +39,4 @@ public class RegisterActivity extends MainActivity {
                     }
                 });
     }
-
-
 }

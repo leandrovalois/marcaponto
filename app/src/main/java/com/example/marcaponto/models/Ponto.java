@@ -17,15 +17,12 @@ public class Ponto {
     public String getUsuario() {
         return usuario;
     }
-
     public double getLatitude() {
         return latitude;
     }
-
     public double getLongitude() {
         return longitude;
     }
-
     public String getHorario() {
         return horario;
     }
