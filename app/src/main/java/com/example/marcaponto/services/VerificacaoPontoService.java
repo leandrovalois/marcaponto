@@ -1,39 +1,20 @@
 package com.example.marcaponto.services;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-
-import com.example.marcaponto.R;
-import com.example.marcaponto.models.Ponto;
-import com.example.marcaponto.network.ApiService;
-import com.example.marcaponto.utils.RetrofitClient;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class VerificacaoPontoService extends Service {
 
-    private static final String TAG = "VALOIS >>";
+    private static final String TAG = "VerificacaoPontoService";
     private Timer timer;
-    private static final long INTERVALO_VERIFICACAO = 1 * 60 * 1000; // 5 minutos
-    private static final int MAX_TENTATIVAS = 3; // Número máximo de tentativas
+    private static final long INTERVALO_VERIFICACAO = 60 * 1000; // 1 minuto
     private int[] horariosProgramados; // Horários programados pelo usuário (em minutos desde a meia-noite)
-    private int tentativas = 0; // Contador de tentativas
-    private ApiService apiService; // Interface do Retrofit para consultar o banco de dados
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -41,18 +22,19 @@ public class VerificacaoPontoService extends Service {
         horariosProgramados = intent.getIntArrayExtra("horariosProgramados");
 
         if (horariosProgramados == null || horariosProgramados.length != 4) {
-            Log.e("VerificacaoPontoService", "Horários programados inválidos.");
+            Log.e(TAG, "Horários programados inválidos.");
             stopSelf(); // Encerra o serviço se os horários não forem válidos
             return START_NOT_STICKY;
+        }else{
+            Log.d(TAG,"Horarios programados: "+ horariosProgramados);
         }
-
-        // Configurar o Retrofit
-        apiService = RetrofitClient.getApiService();
 
         iniciarVerificacao();
         return START_STICKY;
     }
+
     private void iniciarVerificacao() {
+        Log.d(TAG, "iniciarVerificacao");
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -61,55 +43,43 @@ public class VerificacaoPontoService extends Service {
             }
         }, 0, INTERVALO_VERIFICACAO);
     }
+
+
     private void verificarPontos() {
-        Log.d(TAG, "1");
         Calendar agora = Calendar.getInstance();
         int minutosAtuais = agora.get(Calendar.HOUR_OF_DAY) * 60 + agora.get(Calendar.MINUTE);
 
-        for (int horario : horariosProgramados) {
-            Log.d(TAG, horariosProgramados+"");
-            if (minutosAtuais >= horario && minutosAtuais <= horario + 1) {
-                Log.d(TAG, horario+"");
-                // Verificar se o ponto foi batido
-                verificarPontoNoBanco(horario);
+        // Encontrar o horário programado mais próximo
+        int horarioMaisProximo = encontrarHorarioMaisProximo(minutosAtuais, horariosProgramados);
+
+        if (horarioMaisProximo != -1) {
+            int diferenca = minutosAtuais - horarioMaisProximo;
+
+            // Verificar se a diferença está entre 1 e 3 minutos
+            if (diferenca >= 1 && diferenca <= 3) {
+                Log.d(TAG, "Disparar notificação: " + diferenca + " minutos após o horário programado.");
+                enviarNotificacao("Lembrete de Ponto", "Você esqueceu de bater o ponto às " + formatarHorario(horarioMaisProximo) + ".");
             }
         }
     }
 
+    private int encontrarHorarioMaisProximo(int minutosAtuais, int[] horariosProgramados) {
+        if (horariosProgramados == null || horariosProgramados.length == 0) {
+            return -1; // Retorna -1 se não houver horários programados
+        }
 
-    private void verificarPontoNoBanco(int horario) {
-        String horarioFormatado = formatarHorario(horario);
-        Call<List<Ponto>> call = apiService.buscarPontosPorHorario(horarioFormatado);
+        int horarioMaisProximo = horariosProgramados[0];
+        int menorDiferenca = Math.abs(minutosAtuais - horarioMaisProximo);
 
-        call.enqueue(new Callback<List<Ponto>>() {
-            @Override
-            public void onResponse(Call<List<Ponto>> call, Response<List<Ponto>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Ponto> pontos = response.body();
-                    if (pontos.isEmpty()) {
-                        // Ponto não foi batido
-                        tentativas++;
-                        if (tentativas >= MAX_TENTATIVAS) {
-                            Log.d(TAG, horarioFormatado);
-                            //exibirNotificacao(horario);
-                            enviarNotificacao("Título da Notificação", "Esta é uma mensagem de notificação.");
-
-                            tentativas = 0; // Reinicia o contador de tentativas
-                        }
-                    } else {
-                        // Ponto foi batido
-                        tentativas = 0; // Reinicia o contador de tentativas
-                    }
-                } else {
-                    Log.e("VerificacaoPontoService", "Erro ao buscar pontos no banco de dados.");
-                }
+        for (int horario : horariosProgramados) {
+            int diferenca = Math.abs(minutosAtuais - horario);
+            if (diferenca < menorDiferenca) {
+                menorDiferenca = diferenca;
+                horarioMaisProximo = horario;
             }
+        }
 
-            @Override
-            public void onFailure(Call<List<Ponto>> call, Throwable t) {
-                Log.e("VerificacaoPontoService", "Falha na comunicação com o servidor: " + t.getMessage());
-            }
-        });
+        return horarioMaisProximo;
     }
 
     private void enviarNotificacao(String titulo, String mensagem) {
@@ -122,26 +92,22 @@ public class VerificacaoPontoService extends Service {
     private String formatarHorario(int horario) {
         int horas = horario / 60;
         int minutos = horario % 60;
-
-        // Formatar como "YYYY-MM-DD HH:MM:SS"
-        Calendar agora = Calendar.getInstance();
-        int ano = agora.get(Calendar.YEAR);
-        int mes = agora.get(Calendar.MONTH) + 1; // Mês começa em 0
-        int dia = agora.get(Calendar.DAY_OF_MONTH);
-
-        return String.format("%04d-%02d-%02d %02d:%02d:00", ano, mes, dia, horas, minutos);
+        return String.format("%02d:%02d", horas, minutos);
     }
+
     @Override
     public void onDestroy() {
         pararVerificacao();
         super.onDestroy();
     }
+
     private void pararVerificacao() {
         if (timer != null) {
             timer.cancel();
             timer = null;
         }
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
