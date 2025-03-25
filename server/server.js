@@ -79,7 +79,7 @@ app.get('/pontos-do-dia/:usuario', async (req, res) => {
 // Rota para contar pontos do usuário no dia atual
 app.get('/contar-pontos-do-dia/:usuario', async (req, res) => {
     const { usuario } = req.params;
-    const dataAtual = new Date().toISOString().split('T')[0]; // Formato: YYYY-MM-DD
+    const dataAtual = new Date().toLocaleDateString('pt-BR').split('/').reverse().join('-');
 
     try {
         const query = `
@@ -89,19 +89,17 @@ app.get('/contar-pontos-do-dia/:usuario', async (req, res) => {
         `;
         const values = [usuario, dataAtual];
 
-        console.log("Contando pontos do usuário:", usuario, "na data:", dataAtual); // Log
-
         const result = await pool.query(query, values);
         const totalPontos = result.rows[0].total;
 
-        console.log("Total de pontos encontrados:", totalPontos); // Log
+        console.log("Contando pontos do usuário:", usuario, "na data:", dataAtual, "Total encontrado: ", totalPontos);
 
         res.status(200).json({ total: totalPontos });
     } catch (error) {
-        console.error('Erro ao contar pontos:', error); // Log do erro
+        console.error('Erro ao contar pontos:', error);
         res.status(500).json({ error: 'Erro ao contar pontos' });
     }
-}); 
+});
 
 
 

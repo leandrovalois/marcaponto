@@ -23,7 +23,8 @@ public class VerificacaoPontoService extends Service {
 
         if (horariosProgramados == null || horariosProgramados.length != 4) {
             Log.e(TAG, "Horários programados inválidos.");
-            stopSelf(); // Encerra o serviço se os horários não forem válidos
+
+           //stopSelf(); // Encerra o serviço se os horários não forem válidos
             return START_NOT_STICKY;
         }else{
             Log.d(TAG,"Horarios programados: "+ horariosProgramados);
